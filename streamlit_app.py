@@ -56,6 +56,14 @@ def onehot_pos_prev(num):
     if num == 4:
         return np.array([0, 1, 0, 0, 0])
 
+# Define the mapping of part-of-speech tags to numeric values
+pos_map = {
+    "NN": 1,
+    "DT": 2,
+    "JJ": 3,
+    "OT": 4
+}
+
 st.title("🌲 Recurrent Perceptron for Noun Chunk Identification 🌲")
 
 # Using Markdown for the input text to include an emoji
@@ -70,16 +78,16 @@ print(tagged_words)
 # Initialize a list to store filtered words
 filtered_words = []
 
-# Filter tagged words based on tags of interest
+# Filter tagged words based on the given tags
 for word, tag in tagged_words:
     if tag.startswith('NN'):
-        filtered_words.append(1)
-    elif tag.startswith('DT') or tag == 'PDT' or tag == 'POS':
-        filtered_words.append(2)
+        filtered_words.append(pos_map["NN"])
+    elif tag.startswith('DT'):
+        filtered_words.append(pos_map["DT"])
     elif tag.startswith('JJ'):
-        filtered_words.append(3)
+        filtered_words.append(pos_map["JJ"])
     else:
-        filtered_words.append(4)
+        filtered_words.append(pos_map["OT"])
 
 user_input = filtered_words
 
@@ -127,11 +135,11 @@ if classify_button:
         y_prev = y_cur
 
     # Combine words and part-of-speech tags
-    pos_tagged = [f"{word}_{tag}" for word, (_, tag) in zip(tokens, tagged_words)]
+    pos_tagged = [f"{word}_{pos_map.get(tag[:2], 'OT')}" for word, (_, tag) in zip(tokens, tagged_words)]
     pos_tagged_str = " ".join(pos_tagged)
 
     # Combine words, part-of-speech tags, and predicted labels
-    chunk_result = [f"{word}_{tag}_{label}" for word, (_, tag), label in zip(tokens, tagged_words, output)]
+    chunk_result = [f"{word}_{pos_map.get(tag[:2], 'OT')}_{label}" for word, (_, tag), label in zip(tokens, tagged_words, output)]
     chunk_result_str = " ".join(chunk_result)
     
     # Display the results
