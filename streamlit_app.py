@@ -26,60 +26,43 @@ st.image(demo_image_path, use_column_width=True)
 
 # Load your neural network weights and biases
 wei_prev = [6.53372226, 1.45266998, -1.31130261, -3.16864773, 0.39603089]
-
 wei_cur = [1.74665619, -0.74696832, 2.84321548, -1.33783743]
-
 wei_fb = [1.28461033]
-
 wei_bias = [0.41829136]
-
-# weights_input_hidden = np.array([[-10.2294859, 8.09507879, -7.76310088, 0.87299146],
-#                                  [-5.14719342, 4.01541671, -3.79080752, 6.22177305],
-#                                  [20.57968484, -16.38281642, 15.59209513, -1.18677865],
-#                                  [2.23084496, -6.2968456, -7.7911219, -0.62522003],
-#                                  [-18.04541078, 14.19414722, -13.508314, 7.33701767],
-#                                  [17.92633635, -14.40129001, 13.71816351, 5.96703394],
-#                                  [-2.26863642, -2.64160222, -8.72014773, 0.46199896],
-#                                  [-20.56505124, 16.41616763, -15.58385872, 1.61225809],
-#                                  [5.08204562, -4.10567535, 3.90111721, 6.09747744],
-#                                  [10.21438964, -8.15958061, 7.69688485, -1.14692891]])
-# weights_hidden_output = np.array([[-36.67667482],
-#                                   [-19.05778607],
-#                                   [19.73534923],
-#                                   [-2.41522533]])
-# bias_input_hidden = np.array([[-2.9601965, 7.66022278, 1.2310203, -2.21047831]])
-# bias_hidden_output = np.array([[10.97669777]])
-# thresh = 0.949347883045725
-
 
 def sigmoid(x):
     return 1 / (1 + np.exp(-x))
-
 
 def sigmoid_derivative(x):
     return x * (1 - x)
 
 def onehot_pos_cur(num):
-  if num == 1:
-    return np.array([0, 0, 0, 1])
-  if num == 2:
-    return np.array([0, 0, 1, 0])
-  if num == 3:
-    return np.array([0, 1, 0, 0])
-  if num == 4:
-    return np.array([1, 0, 0, 0])
-
+    if num == 1:
+        return np.array([0, 0, 0, 1])
+    if num == 2:
+        return np.array([0, 0, 1, 0])
+    if num == 3:
+        return np.array([0, 1, 0, 0])
+    if num == 4:
+        return np.array([1, 0, 0, 0])
 
 def onehot_pos_prev(num):
-  if num == 1:
-    return np.array([0, 0, 0, 0, 1])
-  if num == 2:
-    return np.array([0, 0, 0, 1, 0])
-  if num == 3:
-    return np.array([0, 0, 1, 0, 0])
-  if num == 4:
-    return np.array([0, 1, 0, 0, 0])
+    if num == 1:
+        return np.array([0, 0, 0, 0, 1])
+    if num == 2:
+        return np.array([0, 0, 0, 1, 0])
+    if num == 3:
+        return np.array([0, 0, 1, 0, 0])
+    if num == 4:
+        return np.array([0, 1, 0, 0, 0])
 
+# Create a dictionary to map numeric values to part-of-speech tags
+pos_map = {
+    1: 'NN',
+    2: 'DT',
+    3: 'JJ',
+    4: 'OT'
+}
 
 st.title("🌲 Recurrent Perceptron for Noun Chunk Identification 🌲")
 
@@ -91,27 +74,26 @@ tokens = word_tokenize(user_input)
 # Perform part-of-speech tagging
 tagged_words = nltk.pos_tag(tokens)
 print(tagged_words)
-# Define the tags of interest
-tags_of_interest = ['NN', 'DT', 'JJ', 'NNS']
 
 # Initialize a list to store filtered words
 filtered_words = []
 
 # Filter tagged words based on tags of interest
 for word, tag in tagged_words:
-    if tag=='NN' or tag=='NNS' or tag=='NNP' or tag=='NNPS':
+    if tag == 'NN' or tag == 'NNS' or tag == 'NNP' or tag == 'NNPS':
         print(tag, word)
         filtered_words.append(1)
-    elif tag=='DT' or tag=='PDT' or tag=='POS':
+    elif tag == 'DT' or tag == 'PDT' or tag == 'POS':
         print(tag, word)
         filtered_words.append(2)
-    elif tag=='JJ' or tag=='JJR' or tag=='JJS':
+    elif tag == 'JJ' or tag == 'JJR' or tag == 'JJS':
         print(tag, word)
         filtered_words.append(3)
     else:
         filtered_words.append(4)
 
 user_input = filtered_words
+
 # Display the "Classify" button with larger size
 classify_button = st.button(" Classify ", key="classify_button", help="Click to classify")
 
@@ -130,9 +112,10 @@ st.markdown(
 )
 output = []
 if classify_button:
-  user_input = np.array(list(user_input), dtype=int)
-  
-  for i in range(len(user_input)):
+    user_input = np.array(list(user_input), dtype=int)
+
+    output = []
+    for i in range(len(user_input)):
         if i == 0:
             x_prev = np.array([1, 0, 0, 0, 0])  # Initial previous POS tag (V)
             y_prev = 0  # Initial previous output
@@ -141,25 +124,33 @@ if classify_button:
 
         x_cur_int = user_input[i]  # Current POS tag index
         x_cur = onehot_pos_cur(x_cur_int)  # Convert current POS tag to one-hot vector
-
+    
         # Forward pass through the network using sigmoid activation function
         y_cur = sigmoid((np.dot(wei_fb, y_prev) + np.dot(wei_prev, x_prev) + np.dot(wei_cur, x_cur) - wei_bias).item())
-
+    
         # Predict the label based on the output of the network
         if y_cur > 0.5:
             output.append(1)
         else:
             output.append(0)
-
+    
         x_prev = x_cur_int
         y_prev = y_cur
 
-  st.write(output)
-
+    # Combine words, part-of-speech tags, and predicted labels
+    result = []
+    for word, tag, label in zip(tokens, tagged_words, output):
+        pos_tag = pos_map.get(tag[1], 'VB')  # Map the numeric value to the corresponding POS tag
+        result.append(f"{word}_{pos_tag}_{label}")
+    
+    # Join the result into a single string
+    result_str = " ".join(result)
+    
+    # Display the result
+    st.write("POS tagged & Chunk: ", result_str)
 
 # Add the message below the Classify button
 st.markdown("• **Made by 4 IIT-Bombay students.**")
-
 st.markdown("•Hosted by ❤️")
 
 # Display 1.gif image
