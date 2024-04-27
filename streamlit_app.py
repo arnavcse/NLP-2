@@ -56,13 +56,22 @@ def onehot_pos_prev(num):
     if num == 4:
         return np.array([0, 1, 0, 0, 0])
 
-# Define the mapping of part-of-speech tags to numeric values
-pos_map = {
-    "NN": 1,
-    "DT": 2,
-    "JJ": 3,
-    "OT": 4
-}
+# Function to map NLTK's POS tags to the simplified tags
+def nltk_to_simple_pos(nltk_tag):
+    nltk_mapping = {
+        'NN': 'NN',
+        'NNS': 'NN',
+        'NNP': 'NN',
+        'NNPS': 'NN',
+        'DT': 'DT',
+        'PDT': 'DT',
+        'POS': 'DT',
+        'JJ': 'JJ',
+        'JJR': 'JJ',
+        'JJS': 'JJ'
+        # All other NLTK POS tags not listed here will default to 'OT' (Others)
+    }
+    return nltk_mapping.get(nltk_tag, 'OT')
 
 st.title("🌲 Recurrent Perceptron for Noun Chunk Identification 🌲")
 
@@ -71,23 +80,26 @@ user_input = st.text_input("Enter a POS tagged input", "")
 
 tokens = word_tokenize(user_input)
 
-# Perform part-of-speech tagging
+# Perform part-of-speech tagging using NLTK
 tagged_words = nltk.pos_tag(tokens)
 print(tagged_words)
 
-# Initialize a list to store filtered words
+# Initialize a list to store filtered words and simplified POS tags
 filtered_words = []
+simplified_pos_tags = []
 
-# Filter tagged words based on the given tags
+# Filter tagged words based on tags of interest and map to simplified tags
 for word, tag in tagged_words:
-    if tag.startswith('NN'):
-        filtered_words.append(pos_map["NN"])
-    elif tag.startswith('DT'):
-        filtered_words.append(pos_map["DT"])
-    elif tag.startswith('JJ'):
-        filtered_words.append(pos_map["JJ"])
+    simplified_tag = nltk_to_simple_pos(tag)
+    simplified_pos_tags.append(simplified_tag)
+    if simplified_tag == 'NN':
+        filtered_words.append(1)
+    elif simplified_tag == 'DT':
+        filtered_words.append(2)
+    elif simplified_tag == 'JJ':
+        filtered_words.append(3)
     else:
-        filtered_words.append(pos_map["OT"])
+        filtered_words.append(4)
 
 user_input = filtered_words
 
@@ -134,15 +146,13 @@ if classify_button:
         x_prev = x_cur_int
         y_prev = y_cur
 
-    # Combine words and part-of-speech tags
-    pos_tagged = [f"{word}_{pos_map.get(tag[:2], 'OT')}" for word, (_, tag) in zip(tokens, tagged_words)]
-    pos_tagged_str = " ".join(pos_tagged)
+    # Combine words and simplified POS tags
+    pos_tagged_str = " ".join([f"{word}_{tag}" for word, tag in zip(tokens, simplified_pos_tags)])
 
-    # Combine words, part-of-speech tags, and predicted labels
-    chunk_result = [f"{word}_{pos_map.get(tag[:2], 'OT')}_{label}" for word, (_, tag), label in zip(tokens, tagged_words, output)]
-    chunk_result_str = " ".join(chunk_result)
+    # Combine words, simplified POS tags, and predicted labels
+    chunk_result_str = " ".join([f"{word}_{tag}_{label}" for word, tag, label in zip(tokens, simplified_pos_tags, output)])
     
-    # Display the results
+    # Display the POS tagged and chunk result
     st.write("POS tagged:", pos_tagged_str)
     st.write("")  # Add an empty line for spacing
     st.write("Chunk:", chunk_result_str)
