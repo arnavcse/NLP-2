@@ -11,7 +11,8 @@ import numpy as np
 import streamlit as st
 import sklearn
 import nltk
-nltk.download('all')
+nltk.download('punkt')  # Add this line to download the 'punkt' resource
+nltk.download('averaged_perceptron_tagger')  # Download the 'averaged_perceptron_tagger' resource for pos_tag
 from nltk.tokenize import word_tokenize
 import pandas as pd
 import json
