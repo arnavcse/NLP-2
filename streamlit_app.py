@@ -56,14 +56,6 @@ def onehot_pos_prev(num):
     if num == 4:
         return np.array([0, 1, 0, 0, 0])
 
-# Create a dictionary to map numeric values to part-of-speech tags
-pos_map = {
-    1: 'NN',
-    2: 'DT',
-    3: 'JJ',
-    4: 'OT'
-}
-
 st.title("🌲 Recurrent Perceptron for Noun Chunk Identification 🌲")
 
 # Using Markdown for the input text to include an emoji
@@ -80,14 +72,11 @@ filtered_words = []
 
 # Filter tagged words based on tags of interest
 for word, tag in tagged_words:
-    if tag == 'NN' or tag == 'NNS' or tag == 'NNP' or tag == 'NNPS':
-        print(tag, word)
+    if tag.startswith('NN'):
         filtered_words.append(1)
-    elif tag == 'DT' or tag == 'PDT' or tag == 'POS':
-        print(tag, word)
+    elif tag.startswith('DT') or tag == 'PDT' or tag == 'POS':
         filtered_words.append(2)
-    elif tag == 'JJ' or tag == 'JJR' or tag == 'JJS':
-        print(tag, word)
+    elif tag.startswith('JJ'):
         filtered_words.append(3)
     else:
         filtered_words.append(4)
@@ -137,17 +126,18 @@ if classify_button:
         x_prev = x_cur_int
         y_prev = y_cur
 
+    # Combine words and part-of-speech tags
+    pos_tagged = [f"{word}_{tag}" for word, (_, tag) in zip(tokens, tagged_words)]
+    pos_tagged_str = " ".join(pos_tagged)
+
     # Combine words, part-of-speech tags, and predicted labels
-    result = []
-    for word, tag, label in zip(tokens, tagged_words, output):
-        pos_tag = pos_map.get(tag[1], 'VB')  # Map the numeric value to the corresponding POS tag
-        result.append(f"{word}_{pos_tag}_{label}")
+    chunk_result = [f"{word}_{tag}_{label}" for word, (_, tag), label in zip(tokens, tagged_words, output)]
+    chunk_result_str = " ".join(chunk_result)
     
-    # Join the result into a single string
-    result_str = " ".join(result)
-    
-    # Display the result
-    st.write("POS tagged & Chunk: ", result_str)
+    # Display the results
+    st.write("POS tagged:", pos_tagged_str)
+    st.write("")  # Add an empty line for spacing
+    st.write("Chunk:", chunk_result_str)
 
 # Add the message below the Classify button
 st.markdown("• **Made by 4 IIT-Bombay students.**")
