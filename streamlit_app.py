@@ -17,8 +17,8 @@ import pandas as pd
 import json
 
 # Load your image files
- demo_image_path = "demo.jpeg"
- gif_image_path = "1.gif"
+demo_image_path = "demo.jpeg"
+gif_image_path = "1.gif"
 
 # Display demo.png image
 st.image(demo_image_path, use_column_width=True)
@@ -161,5 +161,5 @@ st.markdown("• **Made by 4 IIT-Bombay students.**")
 
 st.markdown("•Hosted by ❤️")
 
-Display 1.gif image
+# Display 1.gif image
 st.image(gif_image_path, use_column_width=True)
